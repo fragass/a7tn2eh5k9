@@ -1,0 +1,157 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#mainWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-area { 
+  display: flex; 
+  gap: 20px; 
+  align-items: flex-start; 
+  justify-content: center; 
+  margin: 0 auto;
+}
+
+canvas { 
+  background: #000; 
+  border: 2px solid #444; 
+}
+
+.side-panel { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+}
+
+.next-box h2 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  color: #fff; /* branco */
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+  width: 200px;
+  font-size: 12px;
+  text-align: left;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.card h3 { 
+  margin: 0 0 8px; 
+  font-size: 13px; 
+  text-align: center; 
+  color: #fff; /* branco */
+  font-family: Arial, Helvetica, sans-serif; 
+}
+.card ul { list-style: none; padding: 0; margin: 0; }
+.card li { margin: 4px 0; }
+.key {
+  display: inline-block;
+  background: #222;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-right: 6px;
+  font-size: 11px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#scoreboard {
+  margin-top: 16px;
+  color: #fff;              /* branco */
+  font-weight: 900;         /* mais pesado */
+  font-size: 20px;          /* maior para destaque */
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  text-shadow: 0 0 6px rgba(255,255,255,0.4); /* leve brilho */
+}
+
+.controls { 
+  margin-top: 16px; 
+  display: flex; 
+  justify-content: center; 
+}
+.btn {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: #222;
+  color: #eee;
+  font-family: Arial, Helvetica, sans-serif;
+}
+.btn:hover { 
+  transform: translateY(-1px); 
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45); 
+}
+#startPauseBtn.start { background: #234; color: #9fddb3; }
+#startPauseBtn.pause { background: #432; color: #ffd27a; }
+#startPauseBtn.resume { background: #223c55; color: #9fc3ff; }
+
+/* Overlay inicial/fim de jogo */
+#overlayPopup {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  color: #fff;
+  z-index: 999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+#overlayPopup h2 { 
+  font-size: 28px; 
+  margin: 0 0 10px; 
+  color: #ff4444; 
+  letter-spacing: 2px; 
+}
+#overlayInfo { 
+  margin: 0 0 16px; 
+  font-size: 16px; 
+  color: #9fddb3; 
+}
+#overlayBtn { 
+  padding: 10px 20px; 
+  font-size: 14px; 
+  font-weight: 700; 
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  padding: 8px 0;
+  font-size: 12px;
+  color: #fff;
+  background: transparent;
+  font-family: Arial, Helvetica, sans-serif;
+  pointer-events: none;
+}
