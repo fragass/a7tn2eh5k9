@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Arena e estado
   const arena = createMatrix(10, 20);
-  const colors = [null, '#00ffff', '#ffff00', '#800080', '#00ff00', '#ff0000', '#0000ff', '#ffa500'];
+  const colors = [null, '#00ffff', '#ffff00', '#800080', '#00ff00', '#ff0000', '#0000ff', '#ffa500']; // I,O,T,S,Z,J,L
 
   const player = {
     pos: { x: 0, y: 0 },
@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let paused = false;
   let gameOver = false;
 
+  // Efeito de flash (linhas já removidas)
+  let flashingRows = [];
+  let flashUntil = 0;
+  const FLASH_DURATION = 180; // ms
+
   // 7-bag
   let pieceBag = [];
   function refillBag() {
@@ -56,11 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pieceBag.length === 0) refillBag();
     return pieceBag.pop();
   }
-
-  // Efeito de limpar linha
-  let flashingRows = [];
-  let flashUntil = 0;
-  const FLASH_DURATION = 180;
 
   // Utils
   function createMatrix(w, h) {
@@ -94,6 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return false;
   }
+
+  // Remoção imediata + flash
   function merge(arena, p) {
     p.matrix.forEach((row, y) => {
       row.forEach((v, x) => {
@@ -103,7 +105,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const rows = getFullRows();
     if (rows.length > 0) {
-      triggerLineClearEffect(rows);
+      // Guarda as posições que vão piscar antes de remover (snapshot)
+      flashingRows = rows.slice();
+      flashUntil = performance.now() + FLASH_DURATION;
+
+      // Remove de imediato
+      removeRows(rows);
+
+      try {
+        lineClearSound.currentTime = 0;
+        lineClearSound.play();
+      } catch (e) {}
+
       const cleared = rows.length;
       player.lines += cleared;
       player.score += cleared * 100 * player.level;
@@ -111,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateScoreboard();
     }
   }
+
   function rotate(matrix, dir) {
     for (let y = 0; y < matrix.length; y++) {
       for (let x = 0; x < y; x++) {
@@ -120,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dir > 0) matrix.forEach(r => r.reverse());
     else matrix.reverse();
   }
+
   function drawBlock(ctx, x, y, color) {
     ctx.fillStyle = color;
     ctx.fillRect(x, y, 1, 1);
@@ -130,6 +145,29 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillRect(x, y, 0.5, 0.08);
     ctx.fillStyle = 'rgba(0,0,0,0.18)';
     ctx.fillRect(x + 0.5, y + 0.92, 0.5, 0.08);
+  }
+
+  // Linhas
+  function getFullRows() {
+    const rows = [];
+    for (let y = arena.length - 1; y >= 0; --y) {
+      let full = true;
+      for (let x = 0; x < arena[y].length; ++x) {
+        if (arena[y][x] === 0) { full = false; break; }
+      }
+      if (full) rows.push(y);
+    }
+    return rows;
+  }
+
+  function removeRows(rows) {
+    rows.sort((a, b) => a - b);
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const y = rows[i];
+      const removed = arena.splice(y, 1)[0];
+      removed.fill(0);
+      arena.unshift(removed);
+    }
   }
 
   // Ações do jogador
@@ -148,6 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+
   function playerSoftDrop() {
     if (!started || paused || gameOver || !player.matrix) return;
     player.pos.y++;
@@ -158,13 +197,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (player.pos.y === 0) { showGameOver(); return; }
       playerReset();
     } else {
-      player.score += 1 * player.level; // soft drop
+      player.score += 1 * player.level;
       updateScoreboard();
     }
     dropCounter = 0;
   }
+
   function autoDrop() {
-    // Queda automática sem pontuação
+    if (!started || paused || gameOver || !player.matrix) return;
     player.pos.y++;
     if (collide(arena, player)) {
       player.pos.y--;
@@ -175,11 +215,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     dropCounter = 0;
   }
+
   function playerMove(dir) {
     if (!started || paused || gameOver || !player.matrix) return;
     player.pos.x += dir;
     if (collide(arena, player)) player.pos.x -= dir;
   }
+
   function playerHold() {
     if (!started || paused || gameOver || !player.matrix) return;
     if (!player.canHold) return;
@@ -208,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     player.pos.y = 0;
     player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
   }
+
   function playerReset() {
     if (!started) return;
 
@@ -223,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (collide(arena, player)) showGameOver();
   }
+
   function hardReset() {
     arena.forEach(row => row.fill(0));
     player.score = 0;
@@ -247,39 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Linhas
-  function getFullRows() {
-    const rows = [];
-    for (let y = arena.length - 1; y >= 0; --y) {
-      let full = true;
-      for (let x = 0; x < arena[y].length; ++x) {
-        if (arena[y][x] === 0) { full = false; break; }
-      }
-      if (full) rows.push(y);
-    }
-    return rows;
-  }
-  function removeRows(rows) {
-    rows.sort((a, b) => a - b);
-    for (let i = rows.length - 1; i >= 0; i--) {
-      const y = rows[i];
-      const row = arena.splice(y, 1)[0].fill(0);
-      arena.unshift(row);
-    }
-  }
-  function triggerLineClearEffect(rows) {
-    try {
-      lineClearSound.currentTime = 0;
-      lineClearSound.play();
-    } catch (e) {}
-    flashingRows = rows.slice();
-    flashUntil = performance.now() + FLASH_DURATION;
-    setTimeout(() => {
-      removeRows(rows);
-      flashingRows = [];
-    }, FLASH_DURATION);
-  }
-
   // Desenho
   function drawMatrix(matrix, offset, colorOverride = null, ctx = context) {
     matrix.forEach((row, y) => {
@@ -291,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
   function drawGhost() {
     if (!player.matrix || gameOver) return;
     const ghost = { pos: { x: player.pos.x, y: player.pos.y }, matrix: player.matrix };
@@ -298,27 +310,43 @@ document.addEventListener('DOMContentLoaded', () => {
     ghost.pos.y--;
     drawMatrix(ghost.matrix, ghost.pos, 'rgba(255,255,255,0.2)');
   }
+
   function drawArena() {
-    for (let y = 0; y < arena.length; y++) {
-      const isFlashing = flashingRows.includes(y) && performance.now() < flashUntil;
-      for (let x = 0; x < arena[y].length; x++) {
-        const v = arena[y][x];
-        if (v !== 0) {
-          const color = isFlashing ? '#ffffff' : colors[v];
-          drawBlock(context, x, y, color);
-        }
-      }
-    }
-  }
-  function draw() {
+    // fundo do tabuleiro
     context.fillStyle = '#000';
     context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // desenha blocos da arena
+    for (let y = 0; y < arena.length; y++) {
+      for (let x = 0; x < arena[y].length; x++) {
+        const v = arena[y][x];
+        if (v !== 0) drawBlock(context, x, y, colors[v]);
+      }
+    }
+
+    // desenha flash sobre as linhas removidas (independente dos blocos já terem sido tirados)
+    if (performance.now() < flashUntil) {
+      context.save();
+      context.globalAlpha = 0.9;
+      context.fillStyle = '#ffffff';
+      flashingRows.forEach(y => {
+        // faixa branca no tamanho da arena (10 colunas x 1 altura)
+        context.fillRect(0, y, arena[0].length, 1);
+      });
+      context.restore();
+    } else {
+      flashingRows = [];
+    }
+  }
+
+  function draw() {
     drawArena();
     if (player.matrix) {
       if (!gameOver) drawGhost();
       drawMatrix(player.matrix, player.pos);
     }
   }
+
   function drawNext() {
     [nextCtx1, nextCtx2, nextCtx3].forEach(ctx => {
       ctx.fillStyle = '#000';
@@ -346,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (started && !paused && !gameOver) {
       dropCounter += delta;
-      if (dropCounter > dropInterval) autoDrop(); // queda automática SEM pontos
+      if (dropCounter > dropInterval) autoDrop();
     }
 
     draw();
@@ -368,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!el) return;
     el.textContent = 'Score: ' + player.score + ' | Linhas: ' + player.lines + ' | Level: ' + player.level;
   }
+
   function showGameOver() {
     gameOver = true;
     paused = true;
@@ -379,9 +408,11 @@ document.addEventListener('DOMContentLoaded', () => {
     startPauseBtn.classList.remove('start', 'pause');
     startPauseBtn.classList.add('resume');
   }
+
   function startPauseToggle() {
     if (gameOver) return;
 
+    // se está no overlay inicial, iniciar
     if (overlay.style.display === 'flex' && overlayTitle.textContent === 'TETRIS') {
       startFromOverlay();
       return;
@@ -407,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startPauseBtn.classList.add('resume');
     }
   }
+
   function startFromOverlay() {
     overlay.style.display = 'none';
     overlayTitle.textContent = 'TETRIS';
@@ -421,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startPauseBtn.classList.remove('start', 'resume');
     startPauseBtn.classList.add('pause');
   }
+
   function restartGame() {
     overlay.style.display = 'none';
     gameOver = false;
@@ -449,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (e.key === 'ArrowDown') playerSoftDrop();
     else if (e.key === 'ArrowUp') playerRotate(1);
     else if (e.code === 'Space') {
-      // Hard drop com pontuação por distância (mais evidente)
+      // Hard drop com pontuação por distância
       let dropDistance = 0;
       while (!collide(arena, player)) {
         player.pos.y++;
