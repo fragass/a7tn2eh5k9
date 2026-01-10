@@ -4,62 +4,115 @@ html, body {
   background: #111;
   color: #fff;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  align-items: center;     /* centraliza verticalmente */
+  justify-content: center; /* centraliza horizontalmente */
+  overflow-x: hidden;      /* impede rolagem lateral */
+  overflow-y: hidden;      /* impede rolagem vertical extra */
   font-family: Arial, Helvetica, sans-serif;
+  text-align: center;      /* centraliza textos por padrão */
 }
 
 #mainWrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 100%;
 }
 
-.game-area { 
-  display: flex; 
-  gap: 20px; 
-  align-items: flex-start; 
-  justify-content: center; 
+.game-area {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.arena-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Arena do Tetris */
+#tetris {
+  background: #000;
+  border: 2px solid #444;
+  width: 200px;   /* largura fixa */
+  height: 400px;  /* altura fixa */
+  display: block;
   margin: 0 auto;
 }
 
-canvas { 
-  background: #000; 
-  border: 2px solid #444; 
+/* Scoreboard abaixo da arena com fonte menor */
+#scoreboard {
+  margin-top: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;          /* fonte menor */
+  text-align: center;
+  text-shadow: 0 0 4px rgba(255,255,255,0.3);
+  width: 200px;             /* mesma largura da arena */
+  white-space: nowrap;      /* impede quebra de linha */
 }
 
-.side-panel { 
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
+/* Próximas peças */
+.next-box {
+  display: flex;
+  flex-direction: column; /* título em cima */
+  align-items: center;
+  margin-top: 12px;
 }
 
 .next-box h2 {
   font-size: 14px;
   margin-bottom: 8px;
   letter-spacing: 1px;
-  color: #fff; /* branco */
-  font-family: Arial, Helvetica, sans-serif;
+  color: #fff;
+  text-align: center;
+  width: 100%;
 }
+
+/* Linha horizontal para os canvases */
+.next-box-canvases {
+  display: flex;
+  flex-direction: row;   /* coloca os quadrados lado a lado */
+  gap: 10px;             /* espaço entre eles */
+  justify-content: center;
+  align-items: center;
+}
+
+#next1, #next2, #next3 {
+  background: #000;
+  border: 2px solid #444;
+  width: 100px;
+  height: 100px;
+  display: block;
+  margin: 0;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.left-panel { order: -1; } /* garante que fique à esquerda */
 
 .card {
   background: #1a1a1a;
   border: 1px solid #333;
-  border-radius: 10px;
   padding: 12px;
   margin-top: 12px;
   width: 200px;
   font-size: 12px;
   text-align: left;
-  font-family: Arial, Helvetica, sans-serif;
 }
-.card h3 { 
-  margin: 0 0 8px; 
-  font-size: 13px; 
-  text-align: center; 
-  color: #fff; /* branco */
-  font-family: Arial, Helvetica, sans-serif; 
+.card h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-align: center;
+  color: #fff;
 }
 .card ul { list-style: none; padding: 0; margin: 0; }
 .card li { margin: 4px 0; }
@@ -67,51 +120,42 @@ canvas {
   display: inline-block;
   background: #222;
   border: 1px solid #444;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 2px 6px;
   margin-right: 6px;
   font-size: 11px;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
-#scoreboard {
+/* Botão agora na lateral direita */
+.controls-side {
   margin-top: 16px;
-  color: #fff;              /* branco */
-  font-weight: 900;         /* mais pesado */
-  font-size: 20px;          /* maior para destaque */
-  font-family: Arial, Helvetica, sans-serif;
-  text-align: center;
-  text-shadow: 0 0 6px rgba(255,255,255,0.4); /* leve brilho */
+  display: flex;
+  justify-content: center;
 }
 
-.controls { 
-  margin-top: 16px; 
-  display: flex; 
-  justify-content: center; 
-}
 .btn {
   padding: 10px 18px;
   font-size: 13px;
   font-weight: 700;
   border: 1px solid #333;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: transform .15s ease, box-shadow .15s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: #222;
+  background: #222;   /* tom da página */
   color: #eee;
-  font-family: Arial, Helvetica, sans-serif;
 }
-.btn:hover { 
-  transform: translateY(-1px); 
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45); 
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
 }
-#startPauseBtn.start { background: #234; color: #9fddb3; }
-#startPauseBtn.pause { background: #432; color: #ffd27a; }
-#startPauseBtn.resume { background: #223c55; color: #9fc3ff; }
 
-/* Overlay inicial/fim de jogo */
+/* Estados do botão */
+#startPauseBtn.start { background: #222; color: #9fddb3; }  /* verde suave */
+#startPauseBtn.pause { background: #222; color: #ffd27a; }  /* amarelo suave */
+#startPauseBtn.resume { background: #222; color: #9fc3ff; } /* azul claro */
+
 #overlayPopup {
   display: none;
   position: fixed; inset: 0;
@@ -123,23 +167,23 @@ canvas {
   justify-content: center;
   text-align: center;
   padding: 20px;
-  font-family: Arial, Helvetica, sans-serif;
 }
-#overlayPopup h2 { 
-  font-size: 28px; 
-  margin: 0 0 10px; 
-  color: #ff4444; 
-  letter-spacing: 2px; 
+#overlayPopup h2 {
+  font-size: 28px;
+  margin: 0 0 10px;
+  color: #ff4444;
+  letter-spacing: 2px;
 }
-#overlayInfo { 
-  margin: 0 0 16px; 
-  font-size: 16px; 
-  color: #9fddb3; 
+#overlayInfo {
+  margin: 0 0 16px;
+  font-size: 16px;
+  color: #9fddb3;
 }
-#overlayBtn { 
-  padding: 10px 20px; 
-  font-size: 14px; 
-  font-weight: 700; 
+#overlayBtn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 10px;
 }
 
 footer {
@@ -152,6 +196,5 @@ footer {
   font-size: 12px;
   color: #fff;
   background: transparent;
-  font-family: Arial, Helvetica, sans-serif;
   pointer-events: none;
 }
