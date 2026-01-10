@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Arena e estado
   const arena = createMatrix(10, 20);
   const colors = [null, '#00ffff', '#ffff00', '#800080', '#00ff00', '#ff0000', '#0000ff', '#ffa500']; // I,O,T,S,Z,J,L
+  const typeMap = [null, 'I', 'O', 'T', 'S', 'Z', 'J', 'L']; // índice pelo valor do bloco
 
   const player = {
     pos: { x: 0, y: 0 },
@@ -42,11 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let started = false;
   let paused = false;
   let gameOver = false;
-
-  // Efeito de flash (linhas já removidas)
-  let flashingRows = [];
-  let flashUntil = 0;
-  const FLASH_DURATION = 180; // ms
 
   // 7-bag
   let pieceBag = [];
@@ -95,7 +91,28 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
-  // Remoção imediata + flash
+  // Detecta o tipo da peça a partir dos valores dos blocos (1..7)
+  function pieceTypeOf(matrix) {
+    for (let y = 0; y < matrix.length; y++) {
+      for (let x = 0; x < matrix[y].length; x++) {
+        const v = matrix[y][x];
+        if (v !== 0) return typeMap[v];
+      }
+    }
+    return null;
+  }
+
+  // Gera uma peça cujo tipo seja diferente do tipo excluído
+  function createPieceDifferentFrom(excludeType) {
+    let t = randomPiece();
+    // garante diferente
+    while (t === excludeType) {
+      t = randomPiece();
+    }
+    return createPiece(t);
+  }
+
+  // Remoção imediata ao fixar peça
   function merge(arena, p) {
     p.matrix.forEach((row, y) => {
       row.forEach((v, x) => {
@@ -105,11 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const rows = getFullRows();
     if (rows.length > 0) {
-      // Guarda as posições que vão piscar antes de remover (snapshot)
-      flashingRows = rows.slice();
-      flashUntil = performance.now() + FLASH_DURATION;
-
-      // Remove de imediato
       removeRows(rows);
 
       try {
@@ -222,24 +234,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (collide(arena, player)) player.pos.x -= dir;
   }
 
+  // Hold ajustado: 1x por peça e evita mesma peça como ativa após hold
   function playerHold() {
     if (!started || paused || gameOver || !player.matrix) return;
     if (!player.canHold) return;
+
+    // tipo da peça atual (antes do hold)
+    const prevType = pieceTypeOf(player.matrix);
+
     player.canHold = false;
 
     if (player.hold === null) {
+      // primeira vez segurando
       player.hold = player.matrix;
-      player.matrix = player.next.shift();
+
+      // pega próxima peça, mas garante ser de tipo diferente da anterior
+      let candidate = player.next.shift();
+      if (pieceTypeOf(candidate) === prevType) {
+        candidate = createPieceDifferentFrom(prevType);
+      }
+
+      player.matrix = candidate;
       player.next.push(createPiece(randomPiece()));
+
       resetPlayerPosition();
       drawNext();
       if (collide(arena, player)) { showGameOver(); return; }
       return;
     }
 
+    // troca com peça do hold, mas evita que seja o mesmo tipo da anterior
     const temp = player.hold;
     player.hold = player.matrix;
-    player.matrix = temp;
+
+    let candidate = temp;
+    if (pieceTypeOf(candidate) === prevType) {
+      candidate = createPieceDifferentFrom(prevType);
+    }
+
+    player.matrix = candidate;
     resetPlayerPosition();
     if (collide(arena, player)) showGameOver();
   }
@@ -281,8 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
     dropCounter = 0;
     lastTime = 0;
     dropInterval = 1000;
-    flashingRows = [];
-    flashUntil = 0;
     updateScoreboard();
 
     [nextCtx1, nextCtx2, nextCtx3].forEach(ctx => {
@@ -312,30 +343,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function drawArena() {
-    // fundo do tabuleiro
     context.fillStyle = '#000';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    // desenha blocos da arena
     for (let y = 0; y < arena.length; y++) {
       for (let x = 0; x < arena[y].length; x++) {
         const v = arena[y][x];
         if (v !== 0) drawBlock(context, x, y, colors[v]);
       }
-    }
-
-    // desenha flash sobre as linhas removidas (independente dos blocos já terem sido tirados)
-    if (performance.now() < flashUntil) {
-      context.save();
-      context.globalAlpha = 0.9;
-      context.fillStyle = '#ffffff';
-      flashingRows.forEach(y => {
-        // faixa branca no tamanho da arena (10 colunas x 1 altura)
-        context.fillRect(0, y, arena[0].length, 1);
-      });
-      context.restore();
-    } else {
-      flashingRows = [];
     }
   }
 
@@ -525,6 +540,4 @@ document.addEventListener('DOMContentLoaded', () => {
       startFromOverlay();
     }
   });
-
-  // Fim do DOMContentLoaded
 });
