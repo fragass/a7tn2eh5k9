@@ -9,8 +9,8 @@ export default function handler(req, res) {
     return res.status(400).json({ error: "Usuário e senha são obrigatórios" });
   }
 
-  // LOGIN_USERS vem das variáveis de ambiente, no formato JSON
-  // Ex: [{"username":"admin","password":"1234"},{"username":"user","password":"senha"}]
+  // LOGIN_USERS vem das variáveis de ambiente do Vercel, no formato JSON
+  // Exemplo: [{"username":"admin","password":"1234"},{"username":"user","password":"senha"}]
   let users;
   try {
     users = JSON.parse(process.env.LOGIN_USERS || "[]");
