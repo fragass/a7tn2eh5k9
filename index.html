@@ -20,42 +20,8 @@
   </div>
 
   <!-- JS exclusivo do login -->
-  <script>
-    const form = document.getElementById("loginForm");
-    const error = document.getElementById("error");
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      error.textContent = "";
-
-      const username = form.username.value.trim();
-      const password = form.password.value;
-
-      try {
-        const res = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          error.textContent = "Usuário ou senha inválidos";
-          return;
-        }
-
-        // marca login
-        localStorage.setItem("login_ok", "1");
-
-        // redireciona para o Tetris
-        window.location.href = "a7tn2eh5k9.html";
-
-      } catch {
-        error.textContent = "Erro de conexão";
-      }
-    });
-  </script>
+<script src="login.js"></script>
 
 </body>
+
 </html>
