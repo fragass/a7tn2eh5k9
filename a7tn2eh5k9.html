@@ -59,11 +59,14 @@
   <!-- Som opcional -->
   <audio id="lineClearSound" src="lineclear.mp3" preload="auto"></audio>
 
-  <footer>
-    <p>boni</p>
-  </footer>
-
+<script>
+  if (!localStorage.getItem("login_ok")) {
+    window.location.replace("index.html");
+  }
+</script>
+  
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
