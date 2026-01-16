@@ -8,6 +8,7 @@
 <body>
   <div id="mainWrapper">
     <div class="game-area">
+      
       <!-- Painel lateral ESQUERDO -->
       <div class="side-panel left-panel">
         <div class="card">
@@ -57,8 +58,13 @@
 
   <!-- Som opcional -->
   <audio id="lineClearSound" src="lineclear.mp3" preload="auto"></audio>
+
+<script>
+  if (!localStorage.getItem("login_ok")) {
+    window.location.replace("index.html");
+  }
+</script>
   
   <script src="js/script.js"></script>
 </body>
 </html>
-
