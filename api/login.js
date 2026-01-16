@@ -1,6 +1,4 @@
-import bcrypt from "bcryptjs";
-
-export default async function handler(req, res) {
+export default function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -8,26 +6,24 @@ export default async function handler(req, res) {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    return res.status(400).json({ error: "Dados incompletos" });
+    return res.status(400).json({ error: "Dados inválidos" });
+  }
+
+  const rawUsers = process.env.LOGIN_USERS;
+
+  if (!rawUsers) {
+    return res.status(500).json({ error: "LOGIN_USERS não existe" });
   }
 
   let users;
   try {
-    users = JSON.parse(process.env.LOGIN_USERS || "{}");
+    users = JSON.parse(rawUsers);
   } catch {
-    return res.status(500).json({ error: "Erro na configuração" });
+    return res.status(500).json({ error: "LOGIN_USERS inválido" });
   }
 
-  const hash = users[username];
-
-  if (!hash) {
-    return res.status(401).json({ error: "Usuário ou senha inválidos" });
-  }
-
-  const ok = await bcrypt.compare(password, hash);
-
-  if (!ok) {
-    return res.status(401).json({ error: "Usuário ou senha inválidos" });
+  if (!users[username] || users[username] !== password) {
+    return res.status(401).json({ success: false });
   }
 
   return res.status(200).json({ success: true });
