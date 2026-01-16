@@ -9,23 +9,20 @@ export default function handler(req, res) {
     return res.status(400).json({ error: "Usuário e senha são obrigatórios" });
   }
 
-  // LOGIN_USERS vem das variáveis de ambiente do Vercel, no formato JSON
-  // Exemplo: [{"username":"admin","password":"1234"},{"username":"user","password":"senha"}]
+  // LOGIN_USERS vem das variáveis de ambiente do Vercel
+  // Exemplo de LOGIN_USERS: 
+  // {"91643205":"t2026","96247967":"t2026", ...}
   let users;
   try {
-    users = JSON.parse(process.env.LOGIN_USERS || "[]");
+    users = JSON.parse(process.env.LOGIN_USERS || "{}");
   } catch (e) {
     return res.status(500).json({ error: "Erro na configuração dos usuários" });
   }
 
-  const user = users.find(
-    (u) => u.username === username && u.password === password
-  );
-
-  if (!user) {
+  // Verifica se o usuário existe e se a senha confere
+  if (users[username] && users[username] === password) {
+    return res.status(200).json({ success: true });
+  } else {
     return res.status(401).json({ error: "Usuário ou senha inválidos" });
   }
-
-  // Login válido
-  return res.status(200).json({ success: true });
 }
