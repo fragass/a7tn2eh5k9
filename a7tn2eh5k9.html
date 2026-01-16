@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <div id="app" style="display:none;">
   <div id="mainWrapper">
     <div class="game-area">
       
@@ -56,12 +57,16 @@
     <button id="overlayBtn" class="btn">Iniciar</button>
   </div>
 
+    </div>
+
   <!-- Som opcional -->
   <audio id="lineClearSound" src="lineclear.mp3" preload="auto"></audio>
 
 <script>
-  if (!localStorage.getItem("login_ok")) {
+  if (!sessionStorage.getItem("login_ok")) {
     window.location.replace("index.html");
+  } else {
+    document.getElementById("app").style.display = "block";
   }
 </script>
 
@@ -69,6 +74,7 @@
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
 
