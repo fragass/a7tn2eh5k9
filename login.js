@@ -1,28 +1,32 @@
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+document.getElementById("loginBtn").addEventListener("click", async () => {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+  const errorMsg = document.getElementById("errorMsg");
 
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const error = document.getElementById("error");
+  errorMsg.textContent = "";
 
-  error.textContent = "";
+  if (!username || !password) {
+    errorMsg.textContent = "Preencha usuário e senha";
+    return;
+  }
 
   try {
     const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password }),
     });
 
     const data = await res.json();
 
-    if (data.success) {
-      localStorage.setItem("login_ok", "true");
-      window.location.href = "a7tn2eh5k9.html";
+    if (res.ok && data.success) {
+      sessionStorage.setItem("auth", "true");
+      window.location.href = "home.html"; // Página protegida após login
     } else {
-      error.textContent = "Usuário ou senha inválidos";
+      errorMsg.textContent = data.error || "Erro no login";
     }
-  } catch {
-    error.textContent = "Erro ao conectar com o servidor";
+  } catch (err) {
+    errorMsg.textContent = "Erro na comunicação com o servidor";
+    console.error(err);
   }
 });
