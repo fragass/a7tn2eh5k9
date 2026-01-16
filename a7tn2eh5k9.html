@@ -6,11 +6,9 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <script>
-  if (sessionStorage.getItem("auth") !== "true") {
-    window.location.href = "index.html";
-    if else (sessionStorage.getItem("auth") !== "false") {
-      window.location.href = "a7tn2eh5k9.html";
+<script>
+  if (!localStorage.getItem("login_ok")) {
+    window.location.replace("index.html");
   }
 </script>
   <div id="app" style="display:none;">
@@ -74,6 +72,7 @@
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
 
