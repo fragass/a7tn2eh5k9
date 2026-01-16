@@ -6,6 +6,13 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+  <script>
+  const isLogged = sessionStorage.getItem("login_ok");
+
+  if (isLogged !== "true") {
+    window.location.replace("index.html");
+  }
+</script>
   <div id="app" style="display:none;">
   <div id="mainWrapper">
     <div class="game-area">
@@ -62,18 +69,12 @@
   <!-- Som opcional -->
   <audio id="lineClearSound" src="lineclear.mp3" preload="auto"></audio>
 
-<script>
-  if (!sessionStorage.getItem("login_ok")) {
-    window.location.replace("index.html");
-  } else {
-    document.getElementById("app").style.display = "block";
-  }
-</script>
 
   
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
 
