@@ -1,49 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("loginForm");
-  const error = document.getElementById("error");
+  const form = document.getElementById("login-form");
 
-  if (!form) return;
-
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
+    const usuario = document.getElementById("usuario").value;
+    const senha = document.getElementById("senha").value;
 
-    error.textContent = "";
+    // credenciais fixas (exemplo)
+    if (usuario === "boni" && senha === "boni") {
+      localStorage.setItem("auth", "true");
 
-    if (!username || !password) {
-      error.textContent = "Preencha usuário e senha";
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, password })
-      });
-
-      if (!res.ok) {
-        error.textContent = "Usuário ou senha inválidos";
-        return;
-      }
-
-      const data = await res.json();
-
-      if (data.success === true) {
-        // login válido APENAS na sessão atual
-        sessionStorage.setItem("login_ok", "true");
-
-        // redireciona
-        window.location.replace("a7tn2eh5k9.html");
-      } else {
-        error.textContent = "Usuário ou senha inválidos";
-      }
-    } catch (err) {
-      error.textContent = "Erro ao conectar com o servidor";
+      // redireciona corretamente
+      window.location.replace("a7tn2eh5k9.html");
+    } else {
+      alert("Usuário ou senha inválidos");
     }
   });
 });
