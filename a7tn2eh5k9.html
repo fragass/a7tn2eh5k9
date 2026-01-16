@@ -60,7 +60,7 @@
   <audio id="lineClearSound" src="lineclear.mp3" preload="auto"></audio>
 
 <script>
-  if (!localStorage.getItem("login_ok")) {
+  if (sessionStorage.getItem("auth") !== "true") {
     window.location.replace("index.html");
   }
 </script>
@@ -68,6 +68,7 @@
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
 
