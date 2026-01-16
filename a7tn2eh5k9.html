@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <script>
+  if (sessionStorage.getItem("auth") !== "true") {
+    window.location.replace("index.html");
+  }
+</script>
+
   <meta charset="UTF-8">
   <title>Tetris</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <script>
-  const isLogged = sessionStorage.getItem("login_ok");
-
-  if (isLogged !== "true") {
-    window.location.replace("index.html");
-  }
-</script>
   <div id="app" style="display:none;">
   <div id="mainWrapper">
     <div class="game-area">
@@ -74,6 +73,7 @@
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
 
