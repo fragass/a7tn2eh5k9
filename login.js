@@ -19,14 +19,17 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 
     const data = await res.json();
 
+    console.log("Resposta da API:", res.status, data);
+
     if (res.ok && data.success) {
       sessionStorage.setItem("auth", "true");
-      window.location.href = "a7tn2eh5k9.html"; // Redireciona para a página protegida
+      console.log("Autenticado, redirecionando...");
+      window.location.href = "a7tn2eh5k9.html";
     } else {
       errorMsg.textContent = data.error || "Erro no login";
     }
   } catch (err) {
     errorMsg.textContent = "Erro na comunicação com o servidor";
-    console.error(err);
+    console.error("Erro fetch login:", err);
   }
 });
