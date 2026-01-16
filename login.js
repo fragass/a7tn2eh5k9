@@ -4,6 +4,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
   const error = document.getElementById("error");
+
   error.textContent = "";
 
   try {
@@ -16,9 +17,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     const data = await res.json();
 
     if (data.success) {
-      // marca login na sessionStorage
-      sessionStorage.setItem("login_ok", "1");
-      // redireciona para o Tetris
+      localStorage.setItem("login_ok", "true");
       window.location.href = "a7tn2eh5k9.html";
     } else {
       error.textContent = "Usuário ou senha inválidos";
