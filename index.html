@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSS exclusivo do login -->
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+  <div class="login-box">
+    <form id="loginForm">
+      <input type="text" name="username" placeholder="Usuário" autocomplete="username" required>
+      <input type="password" name="password" placeholder="Senha" autocomplete="current-password" required>
+      <button type="submit">Entrar</button>
+      <span id="error"></span>
+    </form>
+  </div>
+
+  <!-- JS exclusivo do login -->
+  <script>
+    const form = document.getElementById("loginForm");
+    const error = document.getElementById("error");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      error.textContent = "";
+
+      const username = form.username.value.trim();
+      const password = form.password.value;
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          error.textContent = "Usuário ou senha inválidos";
+          return;
+        }
+
+        // marca login
+        localStorage.setItem("login_ok", "1");
+
+        // redireciona para o Tetris
+        window.location.href = "a7tn2eh5k9.html";
+
+      } catch {
+        error.textContent = "Erro de conexão";
+      }
+    });
+  </script>
+
+</body>
+</html>
