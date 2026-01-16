@@ -60,24 +60,18 @@
   <audio id="lineClearSound" src="lineclear.mp3" preload="auto"></audio>
 
 <script>
-  (function () {
-    if (!localStorage.getItem("login_ok")) {
-      window.location.replace("index.html");
-      return;
-    }
-
-    // libera a página ASSIM que o DOM existir
-    document.addEventListener("DOMContentLoaded", () => {
-      document.documentElement.style.visibility = "visible";
-      document.body.style.visibility = "visible";
-    });
-  })();
+  if (!localStorage.getItem("login_ok")) {
+    window.location.replace("index.html");
+  } else {
+    document.documentElement.style.visibility = "visible";
+  }
 </script>
 
   
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
 
