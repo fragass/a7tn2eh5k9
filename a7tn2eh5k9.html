@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <style>
+  html, body {
+    visibility: hidden;
+  }
+</style>
   <meta charset="UTF-8">
   <title>Tetris</title>
   <link rel="stylesheet" href="css/styles.css">
@@ -62,11 +67,14 @@
 <script>
   if (!localStorage.getItem("login_ok")) {
     window.location.replace("index.html");
+  } else {
+    document.documentElement.style.visibility = "visible";
   }
 </script>
   
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
