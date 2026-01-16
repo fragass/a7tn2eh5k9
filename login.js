@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (res.ok) {
       sessionStorage.setItem("auth", "true");
-      window.location.replace("a7tn2eh5k9.html");
+      window.location.href = "a7tn2eh5k9.html";
     } else {
       alert("Usuário ou senha inválidos");
     }
