@@ -21,7 +21,7 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 
     if (res.ok && data.success) {
       sessionStorage.setItem("auth", "true");
-      window.location.href = "home.html"; // Página protegida após login
+      window.location.href = "a7tn2eh5k9.html"; // Redireciona para a página desejada
     } else {
       errorMsg.textContent = data.error || "Erro no login";
     }
