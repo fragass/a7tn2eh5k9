@@ -1,23 +1,28 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("login-form");
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const error = document.getElementById("error");
 
-    const usuario = document.getElementById("usuario").value;
-    const senha = document.getElementById("senha").value;
+  error.textContent = "";
 
+  try {
     const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usuario, senha })
+      body: JSON.stringify({ username, password })
     });
 
-    if (res.ok) {
-      sessionStorage.setItem("auth", "true");
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem("login_ok", "true");
       window.location.href = "a7tn2eh5k9.html";
     } else {
-      alert("Usuário ou senha inválidos");
+      error.textContent = "Usuário ou senha inválidos";
     }
-  });
+  } catch {
+    error.textContent = "Erro ao conectar com o servidor";
+  }
 });
