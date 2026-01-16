@@ -1,28 +1,49 @@
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("loginForm");
   const error = document.getElementById("error");
 
-  error.textContent = "";
+  if (!form) return;
 
-  try {
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
-    });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    const data = await res.json();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-    if (data.success) {
-      localStorage.setItem("login_ok", "true");
-      window.location.href = "a7tn2eh5k9.html";
-    } else {
-      error.textContent = "Usuário ou senha inválidos";
+    error.textContent = "";
+
+    if (!username || !password) {
+      error.textContent = "Preencha usuário e senha";
+      return;
     }
-  } catch {
-    error.textContent = "Erro ao conectar com o servidor";
-  }
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (!res.ok) {
+        error.textContent = "Usuário ou senha inválidos";
+        return;
+      }
+
+      const data = await res.json();
+
+      if (data.success === true) {
+        // login válido APENAS na sessão atual
+        sessionStorage.setItem("login_ok", "true");
+
+        // redireciona
+        window.location.replace("a7tn2eh5k9.html");
+      } else {
+        error.textContent = "Usuário ou senha inválidos";
+      }
+    } catch (err) {
+      error.textContent = "Erro ao conectar com o servidor";
+    }
+  });
 });
