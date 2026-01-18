@@ -21,6 +21,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      position: relative;
     }
 
     .container {
@@ -108,23 +109,23 @@
       font-weight: bold;
     }
 
-    /* Botão branco estilo rank */
-    .btn.rank {
+    /* Botão VOLTAR canto superior esquerdo */
+    #backBtn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
       background: #fff;
       color: #111;
       border: 1px solid #ccc;
       padding: 8px 16px;
       border-radius: 8px;
       cursor: pointer;
-      transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
       font-weight: bold;
-      margin-top: 12px;
-      display: block;
-      width: 80%;
       text-align: center;
+      transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
     }
 
-    .btn.rank:hover {
+    #backBtn:hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 18px rgba(0,0,0,0.25);
       background: #f0f0f0;
@@ -134,6 +135,9 @@
 </head>
 
 <body>
+  <!-- Botão VOLTAR no canto superior esquerdo -->
+  <button id="backBtn">VOLTAR</button>
+
   <div class="container">
     <div id="mini-profile">
       <span id="user-phone"></span>
@@ -150,9 +154,6 @@
     <div class="alert-card">
       A lista será limpa a cada 7 dias para evitar problemas, mas outros erros ainda podem surgir kkk
     </div>
-
-    <!-- Botão voltar -->
-    <button id="backBtn" class="btn rank">Voltar para o início</button>
   </div>
 
 <script>
@@ -182,9 +183,9 @@
       });
     });
 
-  // Botão voltar para o início
+  // Botão VOLTAR leva para a página do Tetris
   document.getElementById("backBtn").addEventListener("click", () => {
-    window.location.href = "ksmklewumf.html"; // volta para o jogo
+    window.location.href = "ksmklewumf.html"; 
   });
 </script>
 </body>
