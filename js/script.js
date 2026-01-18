@@ -122,19 +122,18 @@ document.addEventListener('DOMContentLoaded', () => {
                    (player.matrix[0].length / 2 | 0);
   }
 
-  function playerReset() {
-    if (player.next.length < 3) {
-      while (player.next.length < 3) {
-        player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
+  function playerReset(forceNewPiece = true) {
+    if (forceNewPiece) {
+      if (player.next.length < 3) {
+        while (player.next.length < 3) {
+          player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
+        }
       }
+      player.matrix = player.next.shift();
+      player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
     }
-
-    player.matrix = player.next.shift();
-    player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
-
     resetPosition();
     player.canHold = true;
-
     drawNext();
 
     if (collide(arena, player)) showGameOver();
@@ -181,33 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resetPosition();
     player.canHold = false;
     drawNext();
-  }
-
-  /* =======================
-     ROTATION
-  ======================= */
-  function playerRotate(dir = 1) {
-    const m = player.matrix;
-    for (let y = 0; y < m.length; y++) {
-      for (let x = y; x < m[y].length; x++) {
-        [m[x][y], m[y][x]] = [m[y][x], m[x][y]];
-      }
-    }
-    if (dir > 0) m.forEach(row => row.reverse());
-    else m.reverse();
-
-    // Wall kick
-    const pos = player.pos.x;
-    let offset = 1;
-    while (collide(arena, player)) {
-      player.pos.x += offset;
-      offset = -(offset + (offset > 0 ? 1 : -1));
-      if (offset > m[0].length) {
-        playerRotate(-dir);
-        player.pos.x = pos;
-        return;
-      }
-    }
   }
 
   /* =======================
@@ -300,73 +272,69 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =======================
-     PAUSE HELPER
-  ======================= */
-  function togglePause() {
-    paused = !paused;
-    if (paused) startPauseBtn.textContent = 'Retomar';
-    else startPauseBtn.textContent = 'Pausar';
-  }
-
-  /* =======================
-     RESTART HELPER
-  ======================= */
-  function restartGame() {
-    // limpa arena
-    for (let y = 0; y < arena.length; y++) arena[y].fill(0);
-
-    // reset player
-    player.score = 0;
-    player.lines = 0;
-    player.level = 1;
-    player.hold = null;
-    player.next = [];
-    player.matrix = null;
-    player.pos = {x:0, y:0};
-    player.canHold = true;
-
-    dropCounter = 0;
-    dropInterval = 1000;
-    lastTime = 0;
-    started = false;
-    paused = true;
-    gameOver = false;
-
-    overlay.style.display = 'none';
-    startPauseBtn.textContent = 'Iniciar';
-
-    playerReset();
-    updateScoreboard();
-  }
-
-  /* =======================
      INPUT
   ======================= */
   document.addEventListener('keydown', e => {
-    if (e.key === 'p') togglePause();
-    if (e.key.toLowerCase() === 'r') restartGame();
+    if (e.key === 'p') {
+      paused = !paused;
+      startPauseBtn.textContent = paused ? 'Retomar' : 'Pausar';
+    }
+
+    if (e.key.toLowerCase() === 'r') {
+      // limpa arena e reinicia estado
+      for (let y = 0; y < arena.length; y++) {
+        arena[y].fill(0);
+      }
+      player.score = 0;
+      player.lines = 0;
+      player.level = 1;
+      gameOver = false;
+      paused = true;
+      updateScoreboard();
+      playerReset(false); // NÃO troca a peça, apenas reinicia arena
+    }
 
     if (paused || gameOver) return;
 
     if (e.key === 'ArrowLeft') player.pos.x--, collide(arena, player) && player.pos.x++;
     if (e.key === 'ArrowRight') player.pos.x++, collide(arena, player) && player.pos.x--;
     if (e.key === 'ArrowDown') softDrop();
+    if (e.key === 'ArrowUp') {
+      rotate(player.matrix, 1);
+      if (collide(arena, player)) rotate(player.matrix, -1);
+    }
     if (e.key === ' ') hardDrop();
     if (e.key.toLowerCase() === 'c') hold();
-    if (e.key === 'ArrowUp') playerRotate(1);
   });
 
+  /* =======================
+     ROTATE
+  ======================= */
+  function rotate(matrix, dir) {
+    for (let y = 0; y < matrix.length; y++) {
+      for (let x = 0; x < y; x++) {
+        [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+      }
+    }
+    if (dir > 0) matrix.forEach(row => row.reverse());
+    else matrix.reverse();
+  }
+
+  /* =======================
+     BUTTONS
+  ======================= */
   startPauseBtn.onclick = () => {
     if (!started) {
       started = true;
       paused = false;
-      playerReset();
-      updateScoreboard();
       startPauseBtn.textContent = 'Pausar';
-    } else togglePause();
+    } else {
+      paused = !paused;
+      startPauseBtn.textContent = paused ? 'Retomar' : 'Pausar';
+    }
   };
 
-  overlayBtn.onclick = () => restartGame();
+  overlayBtn.onclick = () => location.reload();
 
   update();
 });
