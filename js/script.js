@@ -223,12 +223,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Função do ghost piece
+  // Ghost piece
   function drawGhost(player, arena, ctx = context) {
     if (!player.matrix) return;
 
     const ghostPos = { ...player.pos };
-
     while (!collide(arena, { matrix: player.matrix, pos: ghostPos })) {
       ghostPos.y++;
     }
@@ -259,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     context.fillStyle = '#000';
     context.fillRect(0, 0, canvas.width, canvas.height);
     drawMatrix(arena, { x: 0, y: 0 });
-    drawGhost(player, arena); // chama o ghost piece
+    drawGhost(player, arena); // ghost piece
     if (player.matrix) drawMatrix(player.matrix, player.pos);
   }
 
@@ -362,8 +361,13 @@ document.addEventListener('DOMContentLoaded', () => {
      INPUT
   ======================= */
   document.addEventListener('keydown', e => {
-    if (e.key === 'p') togglePause();
+    // Sempre permite reiniciar
     if (e.key.toLowerCase() === 'r') restartGame();
+
+    // Teclas do jogo só funcionam depois de iniciado
+    if (!started) return;
+
+    if (e.key === 'p') togglePause();
 
     if (paused || gameOver) return;
 
