@@ -1,4 +1,5 @@
-export default async function handler(req, res) {
+// api/score.js
+export default async function handler(req, res) { 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método não permitido" });
   }
@@ -10,30 +11,34 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Upsert: cria se não existir, atualiza se já existir
     const response = await fetch(
       process.env.SUPABASE_URL + "/rest/v1/scores",
       {
-        method: "POST",
+        method: "POST", // upsert é feito via POST no Supabase REST
         headers: {
           "Content-Type": "application/json",
           "apikey": process.env.SUPABASE_ANON_KEY,
-          "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`
+          "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`,
+          "Prefer": "resolution=merge-duplicates" // importante para upsert
         },
-        body: JSON.stringify({
+        body: JSON.stringify([{
           username,
           score,
           lines,
-          level
-        })
+          level,
+          updated_at: new Date().toISOString()
+        }])
       }
     );
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const txt = await response.text();
-      return res.status(500).json({ error: txt });
+      return res.status(500).json({ error: JSON.stringify(data) });
     }
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, data });
   } catch (e) {
     return res.status(500).json({ error: "Erro interno" });
   }
