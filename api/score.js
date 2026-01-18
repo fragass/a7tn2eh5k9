@@ -20,7 +20,7 @@ export default async function handler(req, res) {
           "Content-Type": "application/json",
           "apikey": process.env.SUPABASE_ANON_KEY,
           "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-          "Prefer": "resolution=merge-duplicates" // importante para upsert
+          "Prefer": "resolution=merge-duplicates" // essencial para upsert funcionar
         },
         body: JSON.stringify([{
           username,
