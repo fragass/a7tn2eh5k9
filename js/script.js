@@ -1,307 +1,300 @@
-document.addEventListener('DOMContentLoaded', () => {
+// ========================
+// ELEMENTOS
+// ========================
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-  /* =======================
-     CANVAS
-  ======================= */
-  const canvas = document.getElementById('tetris');
-  const context = canvas.getContext('2d');
-  context.scale(20, 20);
+const overlay = document.getElementById("overlayPopup");
+const overlayTitle = document.getElementById("overlayTitle");
+const overlayInfo = document.getElementById("overlayInfo");
+const overlayBtn = document.getElementById("overlayBtn");
+const rankingBtn = document.getElementById("rankingBtn");
 
-  const nextCanvas1 = document.getElementById('next1');
-  const nextCtx1 = nextCanvas1.getContext('2d'); nextCtx1.scale(20, 20);
-  const nextCanvas2 = document.getElementById('next2');
-  const nextCtx2 = nextCanvas2.getContext('2d'); nextCtx2.scale(20, 20);
-  const nextCanvas3 = document.getElementById('next3');
-  const nextCtx3 = nextCanvas3.getContext('2d'); nextCtx3.scale(20, 20);
+const COLS = 10;
+const ROWS = 20;
+const BLOCK = 30;
 
-  /* =======================
-     UI
-  ======================= */
-  const startPauseBtn = document.getElementById('startPauseBtn');
-  const overlay = document.getElementById('overlayPopup');
-  const overlayTitle = document.getElementById('overlayTitle');
-  const overlayInfo = document.getElementById('overlayInfo');
-  const overlayBtn = document.getElementById('overlayBtn');
+canvas.width = COLS * BLOCK;
+canvas.height = ROWS * BLOCK;
 
-  /* =======================
-     ESTADO
-  ======================= */
-  const arena = createMatrix(10, 20);
-  const colors = [null,'#00ffff','#ffff00','#800080','#00ff00','#ff0000','#0000ff','#ffa500'];
-  const pieces = 'IJLOTSZ';
+// ========================
+// ESTADO
+// ========================
+let board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+let gameOver = false;
+let paused = false;
+let dropCounter = 0;
+let dropInterval = 1000;
+let lastTime = 0;
 
-  const player = {
-    pos: { x: 0, y: 0 },
-    matrix: null,
-    score: 0,
-    lines: 0,
-    level: 1,
-    next: [],
-    hold: null,
-    canHold: true
-  };
+// ========================
+// PLAYER
+// ========================
+const player = {
+  pos: { x: 0, y: 0 },
+  matrix: null,
+  score: 0,
+  lines: 0,
+  level: 1,
+  hold: null,
+  canHold: true
+};
 
-  let dropCounter = 0;
-  let dropInterval = 1000;
-  let lastTime = 0;
-  let started = false;
-  let paused = true;
-  let gameOver = false;
+// ========================
+// PEÇAS
+// ========================
+const pieces = {
+  T: [[0,1,0],[1,1,1]],
+  O: [[1,1],[1,1]],
+  L: [[0,0,1],[1,1,1]],
+  J: [[1,0,0],[1,1,1]],
+  I: [[1,1,1,1]],
+  S: [[0,1,1],[1,1,0]],
+  Z: [[1,1,0],[0,1,1]]
+};
 
-  /* =======================
-     UTIL
-  ======================= */
-  function createMatrix(w, h) {
-    return Array.from({ length: h }, () => new Array(w).fill(0));
-  }
+function createPiece(type) {
+  return pieces[type].map(row => row.slice());
+}
 
-  function createPiece(type) {
-    if (type === 'I') return [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]];
-    if (type === 'O') return [[2,2],[2,2]];
-    if (type === 'T') return [[0,3,0],[3,3,3],[0,0,0]];
-    if (type === 'S') return [[0,4,4],[4,4,0],[0,0,0]];
-    if (type === 'Z') return [[5,5,0],[0,5,5],[0,0,0]];
-    if (type === 'J') return [[6,0,0],[6,6,6],[0,0,0]];
-    if (type === 'L') return [[0,0,7],[7,7,7],[0,0,0]];
-  }
+function randomPiece() {
+  const keys = Object.keys(pieces);
+  return createPiece(keys[Math.floor(Math.random() * keys.length)]);
+}
 
-  function collide(arena, player) {
-    const m = player.matrix;
-    const o = player.pos;
-    for (let y = 0; y < m.length; y++) {
-      for (let x = 0; x < m[y].length; x++) {
-        if (m[y][x] !== 0 &&
-           (arena[y + o.y] &&
-            arena[y + o.y][x + o.x]) !== 0) {
-          return true;
-        }
+// ========================
+// DRAW
+// ========================
+function drawMatrix(matrix, offset) {
+  matrix.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value) {
+        ctx.fillStyle = "#4cafef";
+        ctx.fillRect(
+          (x + offset.x) * BLOCK,
+          (y + offset.y) * BLOCK,
+          BLOCK,
+          BLOCK
+        );
+      }
+    });
+  });
+}
+
+function draw() {
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawMatrix(board, { x: 0, y: 0 });
+  drawMatrix(player.matrix, player.pos);
+}
+
+// ========================
+// COLLISION
+// ========================
+function collide(board, player) {
+  const m = player.matrix;
+  const o = player.pos;
+  for (let y = 0; y < m.length; ++y) {
+    for (let x = 0; x < m[y].length; ++x) {
+      if (
+        m[y][x] &&
+        (board[y + o.y] &&
+         board[y + o.y][x + o.x]) !== 0
+      ) {
+        return true;
       }
     }
-    return false;
+  }
+  return false;
+}
+
+// ========================
+// MERGE
+// ========================
+function merge(board, player) {
+  player.matrix.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value) {
+        board[y + player.pos.y][x + player.pos.x] = value;
+      }
+    });
+  });
+}
+
+// ========================
+// CLEAR LINES
+// ========================
+function sweep() {
+  let rowCount = 0;
+  outer: for (let y = board.length - 1; y >= 0; y--) {
+    for (let x = 0; x < COLS; x++) {
+      if (!board[y][x]) continue outer;
+    }
+    board.splice(y, 1);
+    board.unshift(Array(COLS).fill(0));
+    rowCount++;
+    y++;
   }
 
-  function merge(arena, player) {
-    player.matrix.forEach((row, y) => {
-      row.forEach((value, x) => {
-        if (value !== 0) {
-          arena[y + player.pos.y][x + player.pos.x] = value;
-        }
-      });
-    });
+  if (rowCount > 0) {
+    player.lines += rowCount;
+    player.score += rowCount * 100;
+    player.level = Math.floor(player.lines / 10) + 1;
+    dropInterval = 1000 - (player.level - 1) * 100;
+  }
+}
+
+// ========================
+// PLAYER ACTIONS
+// ========================
+function playerDrop() {
+  player.pos.y++;
+  if (collide(board, player)) {
+    player.pos.y--;
+    merge(board, player);
+    resetPlayer();
     sweep();
   }
+  dropCounter = 0;
+}
 
-  function sweep() {
-    let cleared = 0;
-
-    outer: for (let y = arena.length - 1; y >= 0; y--) {
-      for (let x = 0; x < arena[y].length; x++) {
-        if (arena[y][x] === 0) continue outer;
-      }
-      arena.splice(y, 1);
-      arena.unshift(new Array(10).fill(0));
-      cleared++;
-      y++;
-    }
-
-    if (cleared > 0) {
-      player.lines += cleared;
-      player.score += cleared * 100 * player.level;
-      player.level = Math.floor(player.lines / 10) + 1;
-      dropInterval = Math.max(250, 1000 * Math.pow(0.92, player.level - 1));
-      updateScoreboard();
-    }
-  }
-
-  /* =======================
-     PLAYER
-  ======================= */
-  function resetPosition() {
-    player.pos.y = 0;
-    player.pos.x = (arena[0].length / 2 | 0) -
-                   (player.matrix[0].length / 2 | 0);
-  }
-
-  function playerReset() {
-    if (player.next.length < 3) {
-      while (player.next.length < 3) {
-        player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
-      }
-    }
-
-    player.matrix = player.next.shift();
-    player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
-
-    resetPosition();
-    player.canHold = true;
-
-    drawNext();
-
-    if (collide(arena, player)) showGameOver();
-  }
-
-  function hardDrop() {
-    let distance = 0;
-    while (!collide(arena, player)) {
-      player.pos.y++;
-      distance++;
-    }
-    player.pos.y--;
-    merge(arena, player);
-    player.score += distance * 5 * player.level;
-    updateScoreboard();
-    playerReset();
-    dropCounter = 0;
-  }
-
-  function softDrop() {
+function hardDrop() {
+  while (!collide(board, player)) {
     player.pos.y++;
-    if (collide(arena, player)) {
-      player.pos.y--;
-      merge(arena, player);
-      playerReset();
-    } else {
-      player.score += 1 * player.level;
-      updateScoreboard();
-    }
-    dropCounter = 0;
   }
+  player.pos.y--;
+  merge(board, player);
+  resetPlayer();
+  sweep();
+}
 
-  function hold() {
-    if (!player.canHold) return;
-
-    if (player.hold === null) {
-      player.hold = player.matrix;
-      player.matrix = player.next.shift();
-      player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
-    } else {
-      [player.hold, player.matrix] = [player.matrix, player.hold];
-    }
-
-    resetPosition();
-    player.canHold = false;
-    drawNext();
+function playerMove(dir) {
+  player.pos.x += dir;
+  if (collide(board, player)) {
+    player.pos.x -= dir;
   }
+}
 
-  /* =======================
-     DESENHO
-  ======================= */
-  function drawMatrix(matrix, offset, ctx = context) {
-    matrix.forEach((row, y) => {
-      row.forEach((value, x) => {
-        if (value !== 0) {
-          ctx.fillStyle = colors[value];
-          ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
-        }
-      });
-    });
-  }
-
-  function drawNext() {
-    [nextCtx1, nextCtx2, nextCtx3].forEach(ctx => {
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, 5, 5);
-    });
-
-    player.next.slice(0, 3).forEach((piece, i) => {
-      drawMatrix(piece, { x: 1, y: 1 }, [nextCtx1, nextCtx2, nextCtx3][i]);
-    });
-  }
-
-  function draw() {
-    context.fillStyle = '#000';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    drawMatrix(arena, { x: 0, y: 0 });
-    if (player.matrix) drawMatrix(player.matrix, player.pos);
-  }
-
-  /* =======================
-     LOOP
-  ======================= */
-  function update(time = 0) {
-    const delta = time - lastTime;
-    lastTime = time;
-
-    if (!paused && !gameOver) {
-      dropCounter += delta;
-      if (dropCounter > dropInterval) softDrop();
-    }
-
-    draw();
-    requestAnimationFrame(update);
-  }
-
-  /* =======================
-     SCORE + API
-  ======================= */
-  function updateScoreboard() {
-    const el = document.getElementById('scoreboard');
-    if (el) {
-      el.textContent = `Score: ${player.score} | Linhas: ${player.lines} | Level: ${player.level}`;
+function rotate(matrix) {
+  for (let y = 0; y < matrix.length; ++y) {
+    for (let x = 0; x < y; ++x) {
+      [matrix[x][y], matrix[y][x]] =
+      [matrix[y][x], matrix[x][y]];
     }
   }
+  matrix.forEach(row => row.reverse());
+}
 
-  async function enviarScoreFinal() {
-    const username = sessionStorage.getItem("loggedUserPhone");
-    if (!username) return;
-
-    try {
-      await fetch("/api/score", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          score: player.score,
-          lines: player.lines,
-          level: player.level
-        })
-      });
-    } catch (e) {
-      console.error("Erro ao enviar score");
+function playerRotate() {
+  const pos = player.pos.x;
+  let offset = 1;
+  rotate(player.matrix);
+  while (collide(board, player)) {
+    player.pos.x += offset;
+    offset = -(offset + (offset > 0 ? 1 : -1));
+    if (offset > player.matrix[0].length) {
+      rotate(player.matrix);
+      rotate(player.matrix);
+      rotate(player.matrix);
+      player.pos.x = pos;
+      return;
     }
   }
+}
 
-  function showGameOver() {
-    gameOver = true;
-    paused = true;
-    enviarScoreFinal();
+// ========================
+// RESET
+// ========================
+function resetPlayer() {
+  player.matrix = randomPiece();
+  player.pos.y = 0;
+  player.pos.x = (COLS / 2 | 0) -
+    (player.matrix[0].length / 2 | 0);
+  player.canHold = true;
 
-    overlay.style.display = 'flex';
-    overlayTitle.textContent = 'FIM DE JOGO';
-    overlayInfo.textContent = 'Score: ' + player.score;
-    overlayBtn.textContent = 'Novo Jogo';
+  if (collide(board, player)) {
+    showGameOver();
   }
+}
 
-  /* =======================
-     INPUT
-  ======================= */
-  document.addEventListener('keydown', e => {
-    if (e.key === 'p') paused = !paused;
-    if (e.key === 'r') location.reload();
+// ========================
+// SCORE SEND
+// ========================
+async function enviarScoreFinal() {
+  const username = sessionStorage.getItem("loggedUserPhone");
+  if (!username) return;
 
-    if (paused || gameOver) return;
-
-    if (e.key === 'ArrowLeft') player.pos.x--, collide(arena, player) && player.pos.x++;
-    if (e.key === 'ArrowRight') player.pos.x++, collide(arena, player) && player.pos.x--;
-    if (e.key === 'ArrowDown') softDrop();
-    if (e.key === ' ') hardDrop();
-    if (e.key.toLowerCase() === 'c') hold();
+  await fetch("/api/score", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      score: player.score,
+      lines: player.lines,
+      level: player.level
+    })
   });
+}
 
-  startPauseBtn.onclick = () => {
-    if (!started) {
-      started = true;
-      paused = false;
-      playerReset();
-      updateScoreboard();
-      startPauseBtn.textContent = 'Pausar';
-    } else {
-      paused = !paused;
-      startPauseBtn.textContent = paused ? 'Retomar' : 'Pausar';
-    }
-  };
+// ========================
+// GAME OVER
+// ========================
+function showGameOver() {
+  gameOver = true;
+  paused = true;
+  enviarScoreFinal();
 
-  overlayBtn.onclick = () => location.reload();
+  overlay.style.display = "flex";
+  overlayTitle.textContent = "FIM DE JOGO";
+  overlayInfo.textContent = "Score: " + player.score;
+}
 
-  update();
+// ========================
+// INPUT
+// ========================
+document.addEventListener("keydown", e => {
+  if (paused || gameOver) return;
+
+  if (e.code === "ArrowLeft") playerMove(-1);
+  if (e.code === "ArrowRight") playerMove(1);
+  if (e.code === "ArrowDown") playerDrop();
+  if (e.code === "ArrowUp") playerRotate();
+  if (e.code === "Space") hardDrop();
+  if (e.code === "KeyP") paused = !paused;
+  if (e.code === "KeyR") startGame();
 });
+
+// ========================
+// LOOP
+// ========================
+function update(time = 0) {
+  if (paused || gameOver) return;
+  const delta = time - lastTime;
+  lastTime = time;
+  dropCounter += delta;
+  if (dropCounter > dropInterval) {
+    playerDrop();
+  }
+  draw();
+  requestAnimationFrame(update);
+}
+
+// ========================
+// START
+// ========================
+function startGame() {
+  board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  player.score = 0;
+  player.lines = 0;
+  player.level = 1;
+  gameOver = false;
+  paused = false;
+  overlay.style.display = "none";
+  resetPlayer();
+  update();
+}
+
+overlayBtn.onclick = startGame;
+rankingBtn.onclick = () => location.href = "ranking.html";
+
+startGame();
