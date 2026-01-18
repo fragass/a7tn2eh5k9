@@ -70,6 +70,32 @@
   #dropdown-menu button:hover {
     background: #e60000;
   }
+             /* Card de aviso do score, sem fundo, com outline vermelho */
+  .alert-card.score-warning {
+    width: 200px; /* mesma largura da arena */
+    border: 2px solid #ff4d4d;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 10px;
+    text-align: center;
+    color: #ff4d4d;
+    font-size: 13px;
+    font-weight: bold;
+    position: relative;
+  }
+
+  .alert-card.score-warning::before {
+    content: "!"; /* ponto de exclamação no topo */
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    padding: 0 6px;
+    color: #ff4d4d;
+    font-size: 16px;
+    font-weight: bold;
+  }
 </style>
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -99,6 +125,12 @@
         <canvas id="tetris" width="200" height="400"></canvas>
         <div id="scoreboard">Score: 0 | Linhas: 0 | Level: 1</div>
       </div>
+
+            <!-- Card de aviso abaixo do scoreboard -->
+  <div class="alert-card score-warning">
+    Pode ser que esse tetris esteja ainda menos estável que o outro sem ranklist.
+  </div>
+</div>
 
       <!-- Painel lateral DIREITO -->
       <div class="side-panel right-panel">
@@ -180,6 +212,7 @@ miniProfile.addEventListener("click", () => {
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
 
