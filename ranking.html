@@ -108,6 +108,28 @@
       font-weight: bold;
     }
 
+    /* Botão branco estilo rank */
+    .btn.rank {
+      background: #fff;
+      color: #111;
+      border: 1px solid #ccc;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease, background .2s ease;
+      font-weight: bold;
+      margin-top: 12px;
+      display: block;
+      width: 80%;
+      text-align: center;
+    }
+
+    .btn.rank:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      background: #f0f0f0;
+    }
+
   </style>
 </head>
 
@@ -129,6 +151,8 @@
       A lista será limpa a cada 7 dias para evitar problemas, mas outros erros ainda podem surgir kkk
     </div>
 
+    <!-- Botão voltar -->
+    <button id="backBtn" class="btn rank">Voltar para o início</button>
   </div>
 
 <script>
@@ -157,9 +181,11 @@
         ul.appendChild(li);
       });
     });
+
+  // Botão voltar para o início
+  document.getElementById("backBtn").addEventListener("click", () => {
+    window.location.href = "ksmklewumf.html"; // volta para o jogo
+  });
 </script>
 </body>
 </html>
-
-
-
