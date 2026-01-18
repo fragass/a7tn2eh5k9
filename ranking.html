@@ -29,6 +29,9 @@
       border-radius: 10px;
       padding: 20px;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     h2 {
@@ -39,7 +42,8 @@
     ul {
       list-style: none;
       padding: 0;
-      margin: 0;
+      margin: 0 0 16px 0;
+      width: 100%;
     }
 
     li {
@@ -76,6 +80,34 @@
       cursor: pointer;
       border-radius: 4px;
     }
+
+    /* Card de aviso */
+    .alert-card {
+      width: 100%;
+      border: 2px solid #ff4d4d;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 10px;
+      position: relative;
+      text-align: center;
+      color: #ff4d4d;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .alert-card::before {
+      content: "!"; /* o ponto de exclamação */
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      padding: 0 6px;
+      color: #ff4d4d;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
   </style>
 </head>
 
@@ -91,6 +123,12 @@
 
     <h2>🏆 Ranking</h2>
     <ul id="ranking"></ul>
+
+    <!-- Card de aviso -->
+    <div class="alert-card">
+      Ranking de teste — será limpo a cada 7 dias para evitar problemas, mas ainda podem haver outros erros kkk
+    </div>
+
   </div>
 
 <script>
@@ -122,4 +160,3 @@
 </script>
 </body>
 </html>
-
