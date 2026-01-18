@@ -356,17 +356,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowUp') playerRotate(1);
   });
 
-  startPauseBtn.onclick = () => {
-    if (!started) {
-      started = true;
-      paused = false;
+startPauseBtn.onclick = () => {
+  if (!started) {
+    started = true;
+    paused = false;
+
+    // Só chama playerReset se ainda não houver peça carregada
+    if (!player.matrix) {
       playerReset();
-      updateScoreboard();
-      startPauseBtn.textContent = 'Pausar';
-    } else togglePause();
-  };
+    }
+
+    updateScoreboard();
+    startPauseBtn.textContent = 'Pausar';
+  } else {
+    togglePause();
+  }
+};
 
   overlayBtn.onclick = () => restartGame();
 
   update();
 });
+
