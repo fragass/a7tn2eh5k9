@@ -184,6 +184,35 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =======================
+     ROTATION
+  ======================= */
+  function playerRotate(dir = 1) {
+    const m = player.matrix;
+    // Transpose + reverse rows ou cols
+    for (let y = 0; y < m.length; y++) {
+      for (let x = y; x < m[y].length; x++) {
+        [m[x][y], m[y][x]] = [m[y][x], m[x][y]];
+      }
+    }
+    if (dir > 0) m.forEach(row => row.reverse()); // cw
+    else m.reverse(); // ccw
+
+    // Wall kick
+    const pos = player.pos.x;
+    let offset = 1;
+    while (collide(arena, player)) {
+      player.pos.x += offset;
+      offset = -(offset + (offset > 0 ? 1 : -1));
+      if (offset > m[0].length) {
+        // Não cabe
+        playerRotate(-dir);
+        player.pos.x = pos;
+        return;
+      }
+    }
+  }
+
+  /* =======================
      DESENHO
   ======================= */
   function drawMatrix(matrix, offset, ctx = context) {
@@ -273,12 +302,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* =======================
+     PAUSE HELPER
+  ======================= */
+  function togglePause() {
+    paused = !paused;
+    if (paused) {
+      startPauseBtn.textContent = 'Retomar';
+    } else {
+      startPauseBtn.textContent = 'Pausar';
+    }
+  }
+
+  /* =======================
      INPUT
   ======================= */
   document.addEventListener('keydown', e => {
-    if (e.key === 'p') paused = !paused;
-    if (e.key === 'r') location.reload();
-
+    if (e.key === 'p') togglePause();
     if (paused || gameOver) return;
 
     if (e.key === 'ArrowLeft') player.pos.x--, collide(arena, player) && player.pos.x++;
@@ -286,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowDown') softDrop();
     if (e.key === ' ') hardDrop();
     if (e.key.toLowerCase() === 'c') hold();
+    if (e.key === 'ArrowUp') playerRotate(1); // corrigido rotação
   });
 
   startPauseBtn.onclick = () => {
@@ -296,8 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateScoreboard();
       startPauseBtn.textContent = 'Pausar';
     } else {
-      paused = !paused;
-      startPauseBtn.textContent = paused ? 'Retomar' : 'Pausar';
+      togglePause(); // usa a mesma função que a hotkey
     }
   };
 
