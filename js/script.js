@@ -196,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dir > 0) m.forEach(row => row.reverse());
     else m.reverse();
 
-    // Wall kick
     const pos = player.pos.x;
     let offset = 1;
     while (collide(arena, player)) {
@@ -224,6 +223,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Função do ghost piece
+  function drawGhost(player, arena, ctx = context) {
+    if (!player.matrix) return;
+
+    const ghostPos = { ...player.pos };
+
+    while (!collide(arena, { matrix: player.matrix, pos: ghostPos })) {
+      ghostPos.y++;
+    }
+    ghostPos.y--;
+
+    player.matrix.forEach((row, y) => {
+      row.forEach((value, x) => {
+        if (value !== 0) {
+          ctx.fillStyle = 'rgba(255,255,255,0.3)';
+          ctx.fillRect(x + ghostPos.x, y + ghostPos.y, 1, 1);
+        }
+      });
+    });
+  }
+
   function drawNext() {
     [nextCtx1, nextCtx2, nextCtx3].forEach(ctx => {
       ctx.fillStyle = '#000';
@@ -239,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     context.fillStyle = '#000';
     context.fillRect(0, 0, canvas.width, canvas.height);
     drawMatrix(arena, { x: 0, y: 0 });
+    drawGhost(player, arena); // chama o ghost piece
     if (player.matrix) drawMatrix(player.matrix, player.pos);
   }
 
@@ -312,10 +333,8 @@ document.addEventListener('DOMContentLoaded', () => {
      RESTART HELPER
   ======================= */
   function restartGame() {
-    // limpa arena
     for (let y = 0; y < arena.length; y++) arena[y].fill(0);
 
-    // reset player
     player.score = 0;
     player.lines = 0;
     player.level = 1;
@@ -356,25 +375,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowUp') playerRotate(1);
   });
 
-startPauseBtn.onclick = () => {
-  if (!started) {
-    started = true;
-    paused = false;
+  startPauseBtn.onclick = () => {
+    if (!started) {
+      started = true;
+      paused = false;
 
-    // Só chama playerReset se ainda não houver peça carregada
-    if (!player.matrix) {
-      playerReset();
+      if (!player.matrix) {
+        playerReset();
+      }
+
+      updateScoreboard();
+      startPauseBtn.textContent = 'Pausar';
+    } else {
+      togglePause();
     }
-
-    updateScoreboard();
-    startPauseBtn.textContent = 'Pausar';
-  } else {
-    togglePause();
-  }
-};
+  };
 
   overlayBtn.onclick = () => restartGame();
 
   update();
 });
-
