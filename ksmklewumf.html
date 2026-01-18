@@ -100,6 +100,13 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+
+                  <!-- Card de aviso abaixo do scoreboard -->
+  <div class="alert-card score-warning">
+    Para ver o rank basta clicar <a href="https://a7tn2eh5q9.vercel.app/ranking.html">aqui</a>.
+  </div>
+</div>
+      
   <div id="mainWrapper">
     <div class="game-area">
       
@@ -125,12 +132,6 @@
         <canvas id="tetris" width="200" height="400"></canvas>
         <div id="scoreboard">Score: 0 | Linhas: 0 | Level: 1</div>
       </div>
-
-            <!-- Card de aviso abaixo do scoreboard -->
-  <div class="alert-card score-warning">
-    Pode ser que esse tetris esteja ainda menos estável que o outro sem ranklist.
-  </div>
-</div>
 
       <!-- Painel lateral DIREITO -->
       <div class="side-panel right-panel">
@@ -212,6 +213,7 @@ miniProfile.addEventListener("click", () => {
   <script src="js/script.js"></script>
 </body>
 </html>
+
 
 
 
