@@ -188,14 +188,13 @@ document.addEventListener('DOMContentLoaded', () => {
   ======================= */
   function playerRotate(dir = 1) {
     const m = player.matrix;
-    // Transpose + reverse rows ou cols
     for (let y = 0; y < m.length; y++) {
       for (let x = y; x < m[y].length; x++) {
         [m[x][y], m[y][x]] = [m[y][x], m[x][y]];
       }
     }
-    if (dir > 0) m.forEach(row => row.reverse()); // cw
-    else m.reverse(); // ccw
+    if (dir > 0) m.forEach(row => row.reverse());
+    else m.reverse();
 
     // Wall kick
     const pos = player.pos.x;
@@ -204,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
       player.pos.x += offset;
       offset = -(offset + (offset > 0 ? 1 : -1));
       if (offset > m[0].length) {
-        // Não cabe
         playerRotate(-dir);
         player.pos.x = pos;
         return;
@@ -306,11 +304,39 @@ document.addEventListener('DOMContentLoaded', () => {
   ======================= */
   function togglePause() {
     paused = !paused;
-    if (paused) {
-      startPauseBtn.textContent = 'Retomar';
-    } else {
-      startPauseBtn.textContent = 'Pausar';
-    }
+    if (paused) startPauseBtn.textContent = 'Retomar';
+    else startPauseBtn.textContent = 'Pausar';
+  }
+
+  /* =======================
+     RESTART HELPER
+  ======================= */
+  function restartGame() {
+    // limpa arena
+    for (let y = 0; y < arena.length; y++) arena[y].fill(0);
+
+    // reset player
+    player.score = 0;
+    player.lines = 0;
+    player.level = 1;
+    player.hold = null;
+    player.next = [];
+    player.matrix = null;
+    player.pos = {x:0, y:0};
+    player.canHold = true;
+
+    dropCounter = 0;
+    dropInterval = 1000;
+    lastTime = 0;
+    started = false;
+    paused = true;
+    gameOver = false;
+
+    overlay.style.display = 'none';
+    startPauseBtn.textContent = 'Iniciar';
+
+    playerReset();
+    updateScoreboard();
   }
 
   /* =======================
@@ -318,6 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
   ======================= */
   document.addEventListener('keydown', e => {
     if (e.key === 'p') togglePause();
+    if (e.key.toLowerCase() === 'r') restartGame();
+
     if (paused || gameOver) return;
 
     if (e.key === 'ArrowLeft') player.pos.x--, collide(arena, player) && player.pos.x++;
@@ -325,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'ArrowDown') softDrop();
     if (e.key === ' ') hardDrop();
     if (e.key.toLowerCase() === 'c') hold();
-    if (e.key === 'ArrowUp') playerRotate(1); // corrigido rotação
+    if (e.key === 'ArrowUp') playerRotate(1);
   });
 
   startPauseBtn.onclick = () => {
@@ -335,12 +363,10 @@ document.addEventListener('DOMContentLoaded', () => {
       playerReset();
       updateScoreboard();
       startPauseBtn.textContent = 'Pausar';
-    } else {
-      togglePause(); // usa a mesma função que a hotkey
-    }
+    } else togglePause();
   };
 
-  overlayBtn.onclick = () => location.reload();
+  overlayBtn.onclick = () => restartGame();
 
   update();
 });
