@@ -15,15 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const nextCtx3 = nextCanvas3.getContext('2d'); nextCtx3.scale(20, 20);
 
   /* =======================
-     UI
-  ======================= */
-  const startPauseBtn = document.getElementById('startPauseBtn');
-  const overlay = document.getElementById('overlayPopup');
-  const overlayTitle = document.getElementById('overlayTitle');
-  const overlayInfo = document.getElementById('overlayInfo');
-  const overlayBtn = document.getElementById('overlayBtn');
-
-  /* =======================
      ESTADO
   ======================= */
   const arena = createMatrix(10, 20);
@@ -47,6 +38,23 @@ document.addEventListener('DOMContentLoaded', () => {
   let started = false;
   let paused = true;
   let gameOver = false;
+
+  /* =======================
+     BAG ALEATÓRIA
+  ======================= */
+  let bag = [];
+  function shuffleBag() {
+    bag = pieces.split('');
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+  }
+
+  function getNextPiece() {
+    if (bag.length === 0) shuffleBag();
+    return createPiece(bag.shift());
+  }
 
   /* =======================
      UTIL
@@ -123,14 +131,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function playerReset() {
-    if (player.next.length < 3) {
-      while (player.next.length < 3) {
-        player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
-      }
+    while (player.next.length < 3) {
+      player.next.push(getNextPiece());
     }
 
     player.matrix = player.next.shift();
-    player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
+    player.next.push(getNextPiece());
 
     resetPosition();
     player.canHold = true;
@@ -173,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (player.hold === null) {
       player.hold = player.matrix;
       player.matrix = player.next.shift();
-      player.next.push(createPiece(pieces[Math.floor(Math.random() * pieces.length)]));
+      player.next.push(getNextPiece());
     } else {
       [player.hold, player.matrix] = [player.matrix, player.hold];
     }
@@ -223,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Ghost piece
   function drawGhost(player, arena, ctx = context) {
     if (!player.matrix) return;
 
@@ -258,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     context.fillStyle = '#000';
     context.fillRect(0, 0, canvas.width, canvas.height);
     drawMatrix(arena, { x: 0, y: 0 });
-    drawGhost(player, arena); // ghost piece
+    drawGhost(player, arena);
     if (player.matrix) drawMatrix(player.matrix, player.pos);
   }
 
@@ -312,25 +317,15 @@ document.addEventListener('DOMContentLoaded', () => {
     gameOver = true;
     paused = true;
     enviarScoreFinal();
-
-    overlay.style.display = 'flex';
-    overlayTitle.textContent = 'FIM DE JOGO';
-    overlayInfo.textContent = 'Score: ' + player.score;
-    overlayBtn.textContent = 'Novo Jogo';
   }
 
   /* =======================
-     PAUSE HELPER
+     PAUSE & RESTART
   ======================= */
   function togglePause() {
     paused = !paused;
-    if (paused) startPauseBtn.textContent = 'Retomar';
-    else startPauseBtn.textContent = 'Pausar';
   }
 
-  /* =======================
-     RESTART HELPER
-  ======================= */
   function restartGame() {
     for (let y = 0; y < arena.length; y++) arena[y].fill(0);
 
@@ -350,21 +345,26 @@ document.addEventListener('DOMContentLoaded', () => {
     paused = true;
     gameOver = false;
 
-    overlay.style.display = 'none';
-    startPauseBtn.textContent = 'Iniciar';
-
     playerReset();
     updateScoreboard();
   }
 
   /* =======================
-     INPUT
+     INPUT HOTKEYS
   ======================= */
   document.addEventListener('keydown', e => {
-    // Sempre permite reiniciar
+
     if (e.key.toLowerCase() === 'r') restartGame();
 
-    // Teclas do jogo só funcionam depois de iniciado
+    // Espaço inicia o jogo se não começou
+    if (!started && e.key === ' ') {
+      started = true;
+      paused = false;
+      playerReset();
+      updateScoreboard();
+      return;
+    }
+
     if (!started) return;
 
     if (e.key === 'p') togglePause();
@@ -378,24 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key.toLowerCase() === 'c') hold();
     if (e.key === 'ArrowUp') playerRotate(1);
   });
-
-  startPauseBtn.onclick = () => {
-    if (!started) {
-      started = true;
-      paused = false;
-
-      if (!player.matrix) {
-        playerReset();
-      }
-
-      updateScoreboard();
-      startPauseBtn.textContent = 'Pausar';
-    } else {
-      togglePause();
-    }
-  };
-
-  overlayBtn.onclick = () => restartGame();
 
   update();
 });
